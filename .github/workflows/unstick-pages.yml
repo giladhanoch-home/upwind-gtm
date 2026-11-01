@@ -5,15 +5,19 @@ on:
 permissions:
   pages: write
   contents: read
+  deployments: write
 jobs:
   unstick:
     runs-on: ubuntu-latest
     steps:
-      - name: Cancel the stuck deployment and republish
+      - name: Inspect, cancel and republish
         env:
           GH_TOKEN: ${{ github.token }}
           R: ${{ github.repository }}
         run: |
-          gh api -X POST "repos/$R/pages/deployments/ec874bfbda5aa7655e85e1fe97dbca8e99302a1e/cancel" && echo cancelled || echo "cancel failed"
-          sleep 15
+          S=ec874bfbda5aa7655e85e1fe97dbca8e99302a1e
+          echo "== status before"; gh api "repos/$R/pages/deployments/$S" || true
+          gh api -X POST "repos/$R/pages/deployments/$S/cancel" && echo cancelled || echo "cancel failed"
+          for i in $(seq 1 12); do st=$(gh api "repos/$R/pages/deployments/$S" -q .status 2>/dev/null); echo "status: $st"; case "$st" in deployment_in_progress|syncing_files|updating_pages|deployment_queued) sleep 10;; *) break;; esac; done
+          echo "== pages"; gh api "repos/$R/pages" -q '{status,build_type,source}' || true
           gh api -X POST "repos/$R/pages/builds" && echo "rebuild requested" || echo "rebuild request failed"
