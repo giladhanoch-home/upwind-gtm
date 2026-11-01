@@ -15,6 +15,7 @@ const style = between(page, '<style>', '</style>');
 const fonts = page.match(/<link rel="stylesheet" href="https:\/\/fonts\.googleapis\.com[^>]+>/)[0];
 const sprite = between(page, '<svg width="0" height="0"', '</svg>');
 let hero = between(page, '<section class="hero"', '</section>');
+hero = hero.replace(/<a class="brain-link"[\s\S]*?<\/a>\s*/, '');
 hero = hero.replace(/<div class="ctas">[\s\S]*?<\/div>/, `<form class="gate" id="gate" autocomplete="off" novalidate>
           <label class="gate-sr" for="pw">Password</label>
           <div class="gate-row"><input id="pw" name="pw" type="password" placeholder="Enter the password" autocomplete="current-password" required><button class="btn light" type="submit" id="gbtn">Enter →</button></div>
@@ -33,7 +34,7 @@ const head = `<!doctype html>
 
 
 const gateCss = `<style>
-.gate{margin-top:14px;display:flex;flex-direction:column;align-items:center;gap:10px}
+.gate{margin-top:24px;display:flex;flex-direction:column;align-items:center;gap:10px}
 .gate-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 .gate-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
 .gate input{font:500 15px var(--f-sans);color:#fff;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.35);border-radius:10px;padding:11px 16px;width:260px;outline:none;backdrop-filter:blur(6px);transition:border-color .2s,background .2s}
