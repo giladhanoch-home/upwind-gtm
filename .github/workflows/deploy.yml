@@ -32,12 +32,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           R: ${{ github.repository }}
         run: |
-          for sha in $(gh api "repos/$R/deployments?environment=github-pages&per_page=5" -q '.[].sha' | sort -u); do
-            st=$(gh api "repos/$R/pages/deployments/$sha" -q .status 2>/dev/null || true)
-            echo "$sha $st"
-            case "$st" in deployment_in_progress|syncing_files|updating_pages|deployment_queued|"")
-              [ -n "$st" ] && gh api -X POST "repos/$R/pages/deployments/$sha/cancel" >/dev/null && echo "cancelled $sha" || true;;
-            esac
+          for sha in $(gh api "repos/$R/deployments?environment=github-pages&per_page=3" -q '.[].sha' | sort -u); do
+            [ "$sha" = "$GITHUB_SHA" ] && continue
+            echo "$sha: $(gh api "repos/$R/pages/deployments/$sha" -q .status 2>/dev/null)"
+            gh api -X POST "repos/$R/pages/deployments/$sha/cancel" >/dev/null 2>&1 && echo "  cancel ok" || echo "  cancel n/a"
           done
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
