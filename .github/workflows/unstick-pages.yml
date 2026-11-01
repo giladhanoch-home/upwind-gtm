@@ -1,0 +1,19 @@
+name: Unstick Pages
+on:
+  push:
+    paths: ['.github/workflows/unstick-pages.yml']
+permissions:
+  pages: write
+  contents: read
+jobs:
+  unstick:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cancel the stuck deployment and republish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          R: ${{ github.repository }}
+        run: |
+          gh api -X POST "repos/$R/pages/deployments/ec874bfbda5aa7655e85e1fe97dbca8e99302a1e/cancel" && echo cancelled || echo "cancel failed"
+          sleep 15
+          gh api -X POST "repos/$R/pages/builds" && echo "rebuild requested" || echo "rebuild request failed"
