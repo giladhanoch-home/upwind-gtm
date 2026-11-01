@@ -4,9 +4,10 @@
 // The plain presentation never goes into this repo.
 import { readFileSync, writeFileSync } from 'node:fs';
 import { seal } from './crypto.mjs';
+import { brainViewer } from './brain-viewer.mjs';
 
-const src = process.argv[2], ck = process.env.CONTENT_KEY;
-if (!src || !ck) { console.error('Usage: CONTENT_KEY=... node scripts/build.mjs page.html'); process.exit(1); }
+const src = process.argv[2], brainDir = process.argv[3], ck = process.env.CONTENT_KEY;
+if (!src || !brainDir || !ck) { console.error('Usage: CONTENT_KEY=... node scripts/build.mjs page.html path/to/brain'); process.exit(1); }
 const page = readFileSync(src, 'utf8');
 
 const between = (s, a, b, from = 0) => { const i = s.indexOf(a, from); if (i < 0) throw new Error('not found: ' + a); const j = s.indexOf(b, i + a.length); if (j < 0) throw new Error('not found: ' + b); return s.slice(i, j + b.length); };
@@ -30,8 +31,6 @@ const head = `<!doctype html>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">`;
 
-const full = head + '\n' + page + '\n</html>\n';
-const sealed = await seal(full, ck);
 
 const gateCss = `<style>
 .gate{margin-top:14px;display:flex;flex-direction:column;align-items:center;gap:10px}
@@ -80,8 +79,10 @@ const gateJs = `<script>
 })();
 </script>`;
 
-const out = `${head}
-<title>Upwind MOps Home Assignment · Gilad Hanoch</title>
+async function gate(inner, title) {
+const sealed = await seal(head + '\n' + inner + '\n</html>\n', ck);
+return `${head}
+<title>${title}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 ${fonts}
@@ -107,5 +108,13 @@ ${gateJs}
 </body>
 </html>
 `;
-writeFileSync(new URL('../index.html', import.meta.url), out);
-console.log('index.html written:', (out.length / 1024).toFixed(0) + ' KB');
+}
+const site = 'https://giladhanoch-home.github.io/upwind-gtm/';
+const outs = {
+  'index.html': await gate(page, 'Upwind MOps Home Assignment · Gilad Hanoch'),
+  'brain.html': await gate(brainViewer(brainDir, { style, fonts, sprite, presentationUrl: './' }), 'Upwind GTM Brain · Gilad Hanoch'),
+};
+for (const [f, html] of Object.entries(outs)) {
+  writeFileSync(new URL('../' + f, import.meta.url), html);
+  console.log(f, 'written:', (html.length / 1024).toFixed(0) + ' KB');
+}

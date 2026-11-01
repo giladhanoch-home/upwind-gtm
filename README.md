@@ -3,10 +3,10 @@
 Gilad Hanoch · Marketing Operations Lead home assignment for Upwind Security.
 
 **Live:** https://giladhanoch-home.github.io/upwind-gtm (password protected)
-**The source behind it:** [Upwind GTM Brain](https://github.com/giladhanoch-home/upwind-gtm-brain)
+**The source behind it:** the Upwind GTM Brain, readable at `/brain.html` with the same password
 
 ## How the password works
-The page you land on is a welcome screen. The full presentation sits inside `index.html`, encrypted with AES-256-GCM. The password unlocks a key in `key.json` (PBKDF2-SHA256, 310,000 iterations), and the browser decrypts the page locally. Nothing readable is stored in this repo.
+The page you land on is a welcome screen. The full presentation (`index.html`) and the Brain viewer (`brain.html`) are encrypted with AES-256-GCM. The password unlocks a key in `key.json` (PBKDF2-SHA256, 310,000 iterations), and the browser decrypts the page locally. Nothing readable is stored in this repo.
 
 ## Change the password
 1. **Settings → Secrets and variables → Actions** → edit `SITE_PASSWORD`.
